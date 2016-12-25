@@ -64,11 +64,11 @@ void msUnionSortedY(std::vector<Point> &P, uint begin, uint end, uint mean) {
 }
 
 Edge closestPairRec(std::vector<Point> &P, uint begin, uint end) {
-
-  std::cout << "VVVV " << begin << " - " << end << std::endl;
-  for (uint i = begin; i < end; ++i)
-    std::cout << "- " << P[i] << std::endl;
-
+  /*
+    std::cout << "VVVV " << begin << " - " << end << std::endl;
+    for (uint i = begin; i < end; ++i)
+      std::cout << "- " << P[i] << std::endl;
+  */
   const auto size = end - begin;
   const auto mean = (begin + end + 1) / 2;
   const double mean_x = P[mean - 1].x;
@@ -83,22 +83,22 @@ Edge closestPairRec(std::vector<Point> &P, uint begin, uint end) {
   const auto r_min = closestPairRec(P, mean, end);
   Edge min = (q_min < r_min) ? q_min : r_min;
 
-  std::cout << "^^^^ " << begin << " - " << end << std::endl;
+  // std::cout << "^^^^ " << begin << " - " << end << std::endl;
 
   const double middle_x_range_min = mean_x - min.dist;
   const double middle_x_range_max = mean_x + min.dist;
 
-  std::cout << "ms sort y" << std::endl;
+  // std::cout << "ms sort y" << std::endl;
   msUnionSortedY(P, begin, end, mean);
 
-  std::cout << "middle y" << std::endl;
+  // std::cout << "middle y" << std::endl;
   std::vector<Point> middle_y;
   middle_y.reserve(size);
   for (uint i = begin; i < end; ++i)
     if (P[i].x >= middle_x_range_min && P[i].x <= middle_x_range_max)
       middle_y.push_back(P[i]);
 
-  std::cout << "bf over middle y" << std::endl;
+  // std::cout << "bf over middle y" << std::endl;
   for (uint i = 0; i < middle_y.size() - 1; ++i)
     for (uint j = i + 1; j < middle_y.size() && (j - i) <= 15; ++j) {
       auto e = dotDistance(middle_y[i], middle_y[j]);
@@ -106,7 +106,7 @@ Edge closestPairRec(std::vector<Point> &P, uint begin, uint end) {
         min = e;
     }
 
-  std::cout << "local minima: " << min << std::endl;
+  // std::cout << "local minima: " << min << std::endl;
 
   return min;
 }
