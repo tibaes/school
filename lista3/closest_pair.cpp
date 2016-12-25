@@ -64,6 +64,7 @@ void msUnionSortedY(std::vector<Point> &P, uint begin, uint end, uint mean) {
 }
 
 Edge closestPairRec(std::vector<Point> &P, uint begin, uint end) {
+
   std::cout << "VVVV " << begin << " - " << end << std::endl;
   for (uint i = begin; i < end; ++i)
     std::cout << "- " << P[i] << std::endl;
@@ -120,9 +121,10 @@ Edge closestPair(const std::vector<Point> &p) {
 }
 
 int main() {
-  std::vector<Point> in;
-  int N;
+  int N = 0;
   while (std::cin >> N && N > 0) {
+    std::vector<Point> in;
+    in.reserve(N);
     while (N--) {
       double x, y;
       std::cin >> x >> y;
