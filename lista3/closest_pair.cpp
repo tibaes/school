@@ -27,11 +27,11 @@ Edge dotDistance(const Point &a, const Point &b) {
   return Edge{a, b, dist};
 }
 
-Edge closestPairBruteForce(const std::vector<Point> &p) {
+Edge closestPairBruteForce(const std::vector<Point> &p, uint begin, uint end) {
   Edge min;
   min.dist = std::numeric_limits<double>::max();
-  for (uint i = 0; i < p.size() - 1; ++i) {
-    for (uint j = i + 1; j < p.size(); ++j) {
+  for (uint i = begin; i < end - 1; ++i) {
+    for (uint j = i + 1; j < end; ++j) {
       auto e = dotDistance(p[i], p[j]);
       if (e < min)
         min = e;
@@ -40,50 +40,72 @@ Edge closestPairBruteForce(const std::vector<Point> &p) {
   return min;
 }
 
-Edge closestPairRec(const std::vector<Point> &Px,
-                    const std::vector<Point> &Py) {
-  /*
-std::cout << "###############" << std::endl;
-for (auto p : Px)
-std::cout << p << " | ";
-std::cout << std::endl;
-for (auto p : Py)
-std::cout << p << " | ";
-std::cout << std::endl;
-*/
-  if (Px.size() <= 3)
-    return closestPairBruteForce(Px);
+void msUnionSortedY(std::vector<Point> &P, uint begin, uint end, uint mean) {
+  std::vector<Point> sorted_y;
+  sorted_y.reserve(end - begin);
+  uint q_id = begin, r_id = mean;
+  while (q_id < mean || r_id < end) {
+    if (q_id >= mean) {
+      while (r_id < end)
+        sorted_y.push_back(P[r_id++]);
+    } else if (r_id >= end) {
+      while (q_id < mean)
+        sorted_y.push_back(P[q_id++]);
+    } else {
+      if (P[q_id].y < P[r_id].y)
+        sorted_y.push_back(P[q_id++]);
+      else
+        sorted_y.push_back(P[r_id++]);
+    }
+  }
+  uint p_id = 0;
+  for (const auto &s : sorted_y)
+    P[begin + p_id++] = s;
+}
 
-  const uint mean_x_id = (Px.size() + 1) / 2;
-  const auto qx = std::vector<Point>(Px.begin(), Px.begin() + mean_x_id);
-  const auto rx = std::vector<Point>(Px.begin() + mean_x_id, Px.end());
+Edge closestPairRec(std::vector<Point> &P, uint begin, uint end) {
+  std::cout << "VVVV " << begin << " - " << end << std::endl;
+  for (uint i = begin; i < end; ++i)
+    std::cout << "- " << P[i] << std::endl;
 
-  std::vector<Point> qy, ry;
-  for (const auto &pt : Py) {
-    if (pt.x <= qx.back().x)
-      qy.push_back(pt);
-    else
-      ry.push_back(pt);
+  const auto size = end - begin;
+  const auto mean = (begin + end + 1) / 2;
+  const double mean_x = P[mean - 1].x;
+
+  if (size <= 4) {
+    std::sort(P.begin() + begin, P.begin() + end,
+              [](const Point &a, const Point &b) { return (a.y < b.y); });
+    return closestPairBruteForce(P, begin, end);
   }
 
-  const auto q_min = closestPairRec(qx, qy);
-  const auto r_min = closestPairRec(rx, ry);
+  const auto q_min = closestPairRec(P, begin, mean);
+  const auto r_min = closestPairRec(P, mean, end);
   Edge min = (q_min < r_min) ? q_min : r_min;
 
-  const double middle_x_range_min = qx.back().x - min.dist;
-  const double middle_x_range_max = qx.back().x + min.dist;
+  std::cout << "^^^^ " << begin << " - " << end << std::endl;
 
+  const double middle_x_range_min = mean_x - min.dist;
+  const double middle_x_range_max = mean_x + min.dist;
+
+  std::cout << "ms sort y" << std::endl;
+  msUnionSortedY(P, begin, end, mean);
+
+  std::cout << "middle y" << std::endl;
   std::vector<Point> middle_y;
-  for (const auto &pt : Py)
-    if (pt.x >= middle_x_range_min && pt.x <= middle_x_range_max)
-      middle_y.push_back(pt);
+  middle_y.reserve(size);
+  for (uint i = begin; i < end; ++i)
+    if (P[i].x >= middle_x_range_min && P[i].x <= middle_x_range_max)
+      middle_y.push_back(P[i]);
 
+  std::cout << "bf over middle y" << std::endl;
   for (uint i = 0; i < middle_y.size() - 1; ++i)
     for (uint j = i + 1; j < middle_y.size() && (j - i) <= 15; ++j) {
       auto e = dotDistance(middle_y[i], middle_y[j]);
       if (e < min)
         min = e;
     }
+
+  std::cout << "local minima: " << min << std::endl;
 
   return min;
 }
@@ -92,10 +114,7 @@ Edge closestPair(const std::vector<Point> &p) {
   auto sx = p;
   std::sort(sx.begin(), sx.end(),
             [](const Point &a, const Point &b) { return (a.x < b.x); });
-  auto sy = sx;
-  std::sort(sy.begin(), sy.end(),
-            [](const Point &a, const Point &b) { return (a.y < b.y); });
-  auto e = closestPairRec(sx, sy);
+  auto e = closestPairRec(sx, 0, sx.size());
   e.dist = std::sqrt(e.dist);
   return e;
 }
@@ -109,8 +128,8 @@ int main() {
       std::cin >> x >> y;
       in.push_back(Point{x, y});
     }
-    Edge e;
-    if (in.size() > 1 && (e = closestPair(in)).dist < 10000)
+    const auto e = closestPair(in);
+    if (e.dist < 10000.0)
       std::cout << std::fixed << std::setprecision(4) << e.dist << std::endl;
     else
       std::cout << "INFINITY" << std::endl;
