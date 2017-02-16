@@ -4,37 +4,23 @@ using namespace std;
 int main() {
   std::ios::sync_with_stdio(false);
   cin.tie(NULL);
-  int n;
+  int n, a;
   while ((cin >> n) && n > 0) {
     vector<int> heights;
     heights.reserve(n);
-    vector<int> botton;
-    botton.reserve(n);
-    for (auto i = 0; i < n; ++i) {
-      int a;
+    heights.push_back(1);
+    cin >> a;
+    for (auto i = 1; i < n; ++i) {
       cin >> a;
-      heights.push_back(a);
-      botton.push_back(i);
+      auto p0 = min(i + 1, n - i);
+      auto p1 = min(heights[i - 1] + 1, a);
+      heights.push_back(min(p0, p1));
     }
 
     int maxH = 1;
-    for (auto h = 2; h <= n; ++h) {
-      vector<int> top;
-      for (auto i = 2; i < (int)botton.size(); ++i) {
-        auto x0 = botton[i - 2];
-        auto x1 = botton[i - 1];
-        auto x2 = botton[i];
-        if ((x0 == x1 - 1) && (x1 == x2 - 1) && (heights[x1] >= h)) {
-          top.push_back(x1);
-        }
-      }
-
-      if (top.empty())
-        break;
-      else
-        maxH = h;
-
-      botton = top;
+    for (auto i = n - 2; i > 0; --i) {
+      heights[i] = min(heights[i + 1] + 1, heights[i]);
+      maxH = max(maxH, heights[i]);
     }
 
     cout << maxH << endl;
